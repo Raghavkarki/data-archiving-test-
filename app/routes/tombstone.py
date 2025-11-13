@@ -64,6 +64,8 @@ def stream_tombstones():
     """Stream tombstone data"""
     selected_form = request.args.get("form")
     config = current_app.config
+    
+    current_app.logger.info(f"Tombstone fetch request - Form: {selected_form or 'All'}, IP: {request.remote_addr}")
 
     def generate():
         total_limit = 1000
@@ -115,8 +117,10 @@ def stream_tombstones():
 
             yield f"data: TABLE_DATA::{json.dumps(table_data)}\n\n"
             yield f"data: ✔ Done! Displaying {len(all_docs)} reports.\n\n"
+            current_app.logger.info(f"Tombstone fetch completed - Total: {len(all_docs)} reports, Form: {selected_form or 'All'}")
 
         except Exception as e:
+            current_app.logger.error(f"Error in tombstone stream: {str(e)}", exc_info=True)
             yield f"data: ❌ Error: {str(e)}\n\n"
 
     return Response(stream_with_context(generate()), mimetype="text/event-stream")
@@ -129,6 +133,8 @@ def delete_selected_reports():
     report_ids = data.get("reportIds", [])
     results = []
     config = current_app.config
+
+    current_app.logger.info(f"Tombstone delete request for {len(report_ids)} documents from IP: {request.remote_addr}")
 
     try:
         for doc_id in report_ids:
@@ -152,8 +158,11 @@ def delete_selected_reports():
             else:
                 results.append({"docId": doc_id, "success": False, "error": "Document not found"})
 
+        success_count = sum(1 for r in results if r.get("success"))
+        current_app.logger.info(f"Tombstone delete completed - Success: {success_count}/{len(report_ids)}")
         return jsonify(success=True, results=results)
     except Exception as e:
+        current_app.logger.error(f"Error in tombstone delete: {str(e)}", exc_info=True)
         return jsonify(success=False, message=str(e))
 
 
@@ -161,6 +170,8 @@ def delete_selected_reports():
 def stream_all_tombstones():
     """Stream all tombstones"""
     config = current_app.config
+    
+    current_app.logger.info(f"Fetch all tombstones request from IP: {request.remote_addr}")
 
     def generate():
         all_docs = []
@@ -194,9 +205,11 @@ def stream_all_tombstones():
 
             # After done, save the fetched data to CSV file
             filename, timestamp = save_all_tombstones_single_file(all_docs)
+            current_app.logger.info(f"All tombstones fetched and saved - Total: {all_docs_count}, File: {filename}")
             yield f"data: ✔ Done! Total: {all_docs_count} tombstone reports. Saved as {filename}\n\n"
 
         except Exception as e:
+            current_app.logger.error(f"Error fetching all tombstones: {str(e)}", exc_info=True)
             yield f"data: ❌ Error: {str(e)}\n\n"
 
     return Response(stream_with_context(generate()), mimetype="text/event-stream")

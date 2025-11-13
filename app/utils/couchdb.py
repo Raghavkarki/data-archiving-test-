@@ -34,14 +34,17 @@ def fetch_reports_by_contact_id(contact_id):
             "limit": 1000
         }
 
+        current_app.logger.debug(f"Fetching reports from CouchDB for contact_id: {contact_id}")
         response = requests.post(url, json=query, headers=create_headers(), verify=False)
         if response.status_code != 200:
+            current_app.logger.error(f"CouchDB request failed for contact_id: {contact_id}, status: {response.status_code}")
             return None
 
         data = response.json()
         filtered_docs = data.get('docs', [])
+        current_app.logger.debug(f"Found {len(filtered_docs)} documents for contact_id: {contact_id}")
         return [{"doc": doc} for doc in filtered_docs] if filtered_docs else None
     except Exception as e:
-        print(f"Error fetching reports: {e}")
+        current_app.logger.error(f"Error fetching reports for contact_id: {contact_id}, error: {str(e)}", exc_info=True)
         return None
 

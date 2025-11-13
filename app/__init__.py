@@ -15,6 +15,11 @@ def create_app():
     from app.config import Config
     app.config.from_object(Config)
     
+    # Setup logging
+    from app.utils.app_logger import setup_logging
+    setup_logging(app)
+    app.logger.info("Application starting up...")
+    
     # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.main import main_bp
@@ -25,6 +30,8 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(tombstone_bp)
     app.register_blueprint(csv_mapper_bp)
+    
+    app.logger.info("Application initialized successfully")
     
     return app
 

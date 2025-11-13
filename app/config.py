@@ -38,6 +38,10 @@ class Config:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     LOG_FILE = os.path.join(BASE_DIR, 'data', 'deletion_logs.csv')
     TOMBSTONE_DATA_DIR = os.path.join(BASE_DIR, 'tombstone_data')
+    LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+    
+    # Logging configuration
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
     
     # Form name mappings
     FORM_NAME_MAPPING = {
