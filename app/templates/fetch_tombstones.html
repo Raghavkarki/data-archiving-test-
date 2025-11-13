@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fetch Tombstone Reports</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0 40px 80px 40px;
+    }
+
+    h1 {
+      margin-top: 100px;
+    }
+
+    .sticky-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #ffffff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+    }
+
+    .sticky-header h3 {
+      margin: 0;
+    }
+
+    button {
+      padding: 8px 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 10px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    select {
+      padding: 8px;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 6px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      position: sticky;
+      top: 60px;
+      z-index: 500;
+    }
+
+    #bulk-actions {
+      margin-top: 10px;
+    }
+
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 20px;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    #fetchLoadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      font-size: 18px;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      flex-direction: column;
+    }
+
+    #fetchLoadingOverlay .loading-content {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px 40px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    #fetchLoadingOverlay .spinner {
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid #00c1ed;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #fetchLoadingOverlay .progress-messages {
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      text-align: left;
+      font-family: monospace;
+      font-size: 14px;
+      margin-top: 15px;
+      white-space: pre-wrap;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    pre {
+      background: #f8f8f8;
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+
+    #summary {
+      position: fixed;
+      bottom: 15px;
+      right: 20px;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1500;
+      font-size: 14px;
+    }
+
+    #backToTop {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #333;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: none;
+      z-index: 1500;
+    }
+
+    #fetchAllModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #fetchAllModal .modal-content {
+      background: white;
+      padding: 20px;
+      max-width: 600px;
+      width: 90%;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .modal-box button {
+      margin: 0 10px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .modal-box button:hover {
+      background: #0056b3;
+    }
+    .logout-btn, .go-back-btn, .log-button, button {
+     
+      background: linear-gradient(to right, #00c1ed);
+      color: #ffffff;
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s;
+      font-weight: 600;
+      box-shadow: 0 4px 8px rgba(0, 193, 237, 0.3);
+    }
+
+    .logout-btn:hover, .go-back-btn:hover, .log-button:hover, button:hover {
+      
+      background: linear-gradient(to right, #ec1e79, #00c1ed);
+      transform: translateY(-4px);
+    }
+
+    
+  </style>
+</head>
+<body>
+
+<div class="sticky-header">
+  <div>
+    <h3>Fetch by Single Form</h3>
+  </div>
+  <div>
+    <select id="formSelector">
+      <option value="">All Reports</option>
+      <option value="post_delivery_form">post_delivery_form</option>
+      <option value="u2_registry">u2 Registry</option>
+      <option value="epds_screening">EPDS Screening</option>
+      <option value="epds_module_1">EPDS Module 1</option>
+      <option value="epds_module_2">EPDS Module 2</option>
+      <option value="epds_module_3">EPDS Module 3</option>
+      <option value="epds_module_4">EPDS Module 4</option>
+      <option value="epds_module_5">EPDS Module 5</option>
+    </select>
+    <button id="fetchButton" onclick="startFetching()">Fetch</button>
+    <a href="/admin" class="go-back-btn">⬅️ Go Back to Main Page</a>
+    <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+  </div>
+</div>
+
+<h1>Report Management</h1>
+
+<div id="bulk-actions" style="display:none;">
+  <button onclick="toggleSelectAll()" id="toggleBtn">Select All</button>
+  <button onclick="deleteSelectedReports()">🗑️ Delete Selected</button>
+</div>
+
+<div id="singleFormResults">
+  <div id="reportTable"></div>
+  <pre id="progressSingle"></pre>
+</div>
+
+<div id="summary"></div>
+<div id="loadingOverlay">⏳ Deleting reports, please wait...</div>
+<div id="fetchLoadingOverlay">
+  <div class="loading-content">
+    <div class="spinner"></div>
+    <div><strong>Fetching Reports...</strong></div>
+    <div class="progress-messages" id="fetchProgressMessages"></div>
+  </div>
+</div>
+<div id="backToTop" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑ Back to Top</div>
+
+<div id="fetchAllModal">
+  <div class="modal-content">
+    <h3>Fetching All Reports</h3>
+    <pre id="modalProgress"></pre>
+    <div style="text-align:right; margin-top:10px;">
+      <button onclick="cancelFetchAll()" style="background-color: #dc3545;">❌ Cancel</button>
+      <button onclick="closeFetchModal()" id="okBtn" style="display:none;">✅ OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmDeleteModal" class="modal">
+  <div class="modal-box">
+    <p id="confirmDeleteText">Are you sure you want to delete X reports?</p>
+    <button onclick="confirmDelete()">✅ Yes</button>
+    <button onclick="closeModal('confirmDeleteModal')">❌ No</button>
+  </div>
+</div>
+
+<div id="infoModal" class="modal">
+  <div class="modal-box">
+    <p id="infoModalText">Info here</p>
+    <button onclick="closeModal('infoModal')">OK</button>
+  </div>
+</div>
+
+<script>
+  const reportTableDiv = document.getElementById("reportTable");
+  const progressSingle = document.getElementById("progressSingle");
+  const toggleBtn = document.getElementById("toggleBtn");
+  const bulkActions = document.getElementById("bulk-actions");
+  const loadingOverlay = document.getElementById("loadingOverlay");
+  const fetchLoadingOverlay = document.getElementById("fetchLoadingOverlay");
+  const fetchProgressMessages = document.getElementById("fetchProgressMessages");
+  const summaryDiv = document.getElementById("summary");
+  const backToTop = document.getElementById("backToTop");
+
+  let selectAllActive = false;
+  let fetchAllSource = null;
+  let fetchSource = null;
+  let pendingDeleteIds = [];
+  let fetchButton = null;
+
+  function fetchLatestSummary() {
+    fetch("/latest-tombstone-summary")
+      .then(res => res.json())
+      .then(data => {
+        let html = "";
+        if (data.exists) {
+          const total = Object.values(data.summary).reduce((a, b) => a + b, 0);
+          html += `<div><strong>Total Reports: ${total}</strong><br><button onclick="fetchAll()">Re-fetch</button></div><ul>`;
+          for (const [form, count] of Object.entries(data.summary)) {
+            html += `<li>${form}: ${count}</li>`;
+          }
+          html += `</ul>`;
+        } else {
+          html = `<strong>No reports found.</strong><br><button onclick="fetchAll()">Fetch All</button>`;
+        }
+        summaryDiv.innerHTML = html;
+      });
+  }
+
+  function startFetching() {
+    // Prevent multiple simultaneous fetches
+    if (fetchSource && fetchSource.readyState !== EventSource.CLOSED) {
+      return; // Already fetching
+    }
+
+    // Get the fetch button and disable it
+    const fetchBtn = document.getElementById("fetchButton");
+    if (fetchBtn) {
+      fetchButton = fetchBtn;
+      fetchButton.disabled = true;
+    }
+
+    const form = document.getElementById("formSelector").value;
+    const formDisplay = form || "All";
+    
+    // Show loading overlay
+    fetchLoadingOverlay.style.display = "flex";
+    fetchProgressMessages.textContent = `⏳ Fetching '${formDisplay}' reports...\n`;
+    progressSingle.textContent = `⏳ Fetching '${formDisplay}' reports...\n`;
+    reportTableDiv.innerHTML = "";
+    bulkActions.style.display = "none";
+
+    // Close any existing connection
+    if (fetchSource) {
+      fetchSource.close();
+    }
+
+    fetchSource = new EventSource(`/stream-tombstones?form=${encodeURIComponent(form)}`);
+    
+    fetchSource.onmessage = function (event) {
+      if (event.data.startsWith("TABLE_DATA::")) {
+        const reports = JSON.parse(event.data.replace("TABLE_DATA::", ""));
+        let html = `<table><thead><tr><th><input type="checkbox" onclick="toggleSelectAllRows(this)" id="masterCheckbox"></th><th>#</th><th>Report ID</th><th>Form</th></tr></thead><tbody>`;
+        reports.forEach((r, i) => {
+          html += `<tr><td><input type="checkbox" class="rowCheckbox" data-id="${r._id}"></td><td>${i+1}</td><td>${r._id}</td><td>${r.form}</td></tr>`;
+        });
+        html += "</tbody></table>";
+        reportTableDiv.innerHTML = html;
+        bulkActions.style.display = "block";
+        
+        // Hide loading overlay and re-enable button
+        fetchLoadingOverlay.style.display = "none";
+        if (fetchButton) fetchButton.disabled = false;
+        fetchSource.close();
+        return;
+      }
+
+      // Update progress messages in loading overlay
+      const message = event.data.trim();
+      fetchProgressMessages.textContent += message + "\n";
+      fetchProgressMessages.scrollTop = fetchProgressMessages.scrollHeight;
+      
+      // Also update the progressSingle for backward compatibility
+      progressSingle.textContent += message + "\n";
+      
+      if (message.startsWith("✔") || message.startsWith("❌")) {
+        // Hide loading overlay and re-enable button when done
+        setTimeout(() => {
+          fetchLoadingOverlay.style.display = "none";
+          if (fetchButton) fetchButton.disabled = false;
+        }, 1000);
+        fetchSource.close();
+      }
+    };
+
+    fetchSource.onerror = function() {
+      fetchProgressMessages.textContent += "❌ Connection error. Please try again.\n";
+      setTimeout(() => {
+        fetchLoadingOverlay.style.display = "none";
+        if (fetchButton) fetchButton.disabled = false;
+      }, 2000);
+      fetchSource.close();
+    };
+  }
+
+  function fetchAll() {
+    const modal = document.getElementById("fetchAllModal");
+    const progress = document.getElementById("modalProgress");
+    const okBtn = document.getElementById("okBtn");
+
+    modal.style.display = "flex";
+    progress.textContent = "⏳ Fetching all reports...\n";
+    okBtn.style.display = "none";
+
+    fetchAllSource = new EventSource("/stream-all-tombstones");
+    fetchAllSource.onmessage = function (event) {
+      progress.textContent += event.data + "\n";
+      progress.scrollTop = progress.scrollHeight;
+      if (event.data.startsWith("✔") || event.data.startsWith("❌")) {
+        fetchAllSource.close();
+        okBtn.style.display = "inline-block";
+        fetchLatestSummary();
+      }
+    };
+    fetchAllSource.onerror = function () {
+      progress.textContent += "❌ Connection lost.\n";
+      fetchAllSource.close();
+      okBtn.style.display = "inline-block";
+    };
+  }
+
+  function closeFetchModal() {
+    document.getElementById("fetchAllModal").style.display = "none";
+  }
+
+  function cancelFetchAll() {
+    if (fetchAllSource) {
+      fetchAllSource.close();
+      document.getElementById("modalProgress").textContent += "❌ Cancelled by user.\n";
+      document.getElementById("okBtn").style.display = "inline-block";
+    }
+  }
+
+  function toggleSelectAllRows(master) {
+    const checkboxes = document.querySelectorAll('.rowCheckbox');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+    selectAllActive = master.checked;
+  }
+
+  function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.rowCheckbox');
+    checkboxes.forEach(cb => cb.checked = !selectAllActive);
+    document.getElementById("masterCheckbox").checked = !selectAllActive;
+    toggleBtn.textContent = selectAllActive ? "Select All" : "Deselect All";
+    selectAllActive = !selectAllActive;
+  }
+
+  function deleteSelectedReports() {
+    const selected = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.dataset.id);
+    if (selected.length === 0) {
+      showModal("infoModal", "Please select at least one report to delete.");
+      return;
+    }
+    pendingDeleteIds = selected;
+    document.getElementById("confirmDeleteText").innerText = `Are you sure you want to delete ${selected.length} reports?`;
+    showModal("confirmDeleteModal");
+  }
+
+  function confirmDelete() {
+    closeModal("confirmDeleteModal");
+    loadingOverlay.style.display = "flex";
+
+    fetch("/delete-selected-reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportIds: pendingDeleteIds })
+    })
+    .then(res => res.json())
+    .then(data => {
+      loadingOverlay.style.display = "none";
+      if (data.success) {
+        showModal("infoModal", "✅ Deletion completed. Reloading...");
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showModal("infoModal", "❌ Some deletions failed.");
+      }
+    })
+    .catch(() => {
+      loadingOverlay.style.display = "none";
+      showModal("infoModal", "❌ Error during deletion.");
+    });
+  }
+
+  function showModal(id, message) {
+    document.getElementById(id).style.display = "flex";
+    if (id === "infoModal") document.getElementById("infoModalText").innerText = message;
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  window.onload = fetchLatestSummary;
+  window.onscroll = () => {
+    backToTop.style.display = window.scrollY > 400 ? "block" : "none";
+  };
+</script>
+
+</body>
+</html>

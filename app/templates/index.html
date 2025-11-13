@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Report Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    /* body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f7fa;
+      color: #1f2937;
+    } */
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f7fa;
+      color: #1f2937;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+    }
+    body.page-loaded {
+      opacity: 1;
+    }
+
+    header {
+      background-color: #ffffffee;
+      backdrop-filter: blur(6px);
+      padding: 20px;
+      display: flex;
+      margin-bottom: 12px;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(20px, 4vw, 28px);
+      color: #ec1e79;
+      text-shadow: 0 0 4px rgba(236, 30, 121, 0.5);
+    }
+
+    .logout-btn, .go-back-btn, .log-button, button {
+     
+      background: linear-gradient(to right, #00c1ed);
+      color: #ffffff;
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s;
+      font-weight: 600;
+      box-shadow: 0 4px 8px rgba(0, 193, 237, 0.3);
+    }
+
+    .logout-btn:hover, .go-back-btn:hover, .log-button:hover, button:hover {
+      
+      background: linear-gradient(to right, #ec1e79, #00c1ed);
+      transform: translateY(-4px);
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 800px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    #form-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    #form-checkboxes label:hover {
+      background-color: #e5faff;
+    }
+
+    #form-checkboxes input[type="checkbox"] {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      position: relative;
+      cursor: pointer;
+      background-color: #fff;
+      transition: all 0.2s;
+    }
+
+    #form-checkboxes input[type="checkbox"]:checked {
+      background-color: #ec1e79;
+      border-color: #ec1e79;
+    }
+
+    #form-checkboxes input[type="checkbox"]:checked::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    label {
+      font-weight: 600;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #00c1ed;
+      box-shadow: 0 0 4px rgba(0, 193, 237, 0.4);
+      outline: none;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      background-color: #ec1e79;
+      color: #fff;
+      text-align: left;
+    }
+
+    .btn-danger {
+      background-color: #822fa8;
+      color: #fff;
+      border-radius: 6px;
+      padding: 6px 12px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background-color: #68257e;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 300px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+    }
+
+    .confirm {
+      background-color: #00c1ed;
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+    }
+
+    .cancel {
+      background-color: #ec1e79;
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+    }
+
+    .message.success {
+      color: #0f9d58;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .message.error {
+      color: #d93025;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #00c1ed;
+      border-radius: 4px;
+    }
+    #loadingOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    #filterLoadingOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: rgba(0,0,0,0.7);
+      color: white;
+      font-size: 18px;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      flex-direction: column;
+    }
+
+    #filterLoadingOverlay .loading-content {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px 40px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    #filterLoadingOverlay .spinner {
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid #00c1ed;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db; /* Blue color */
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Data Archiving</h1>
+  <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+  <!-- <button onclick="location.href='/admin'">⬅️ Go Back to Dashboard</button> -->
+  <a href="/admin" class="go-back-btn">⬅️ Go Back to Main Page</a>
+
+</header>
+
+<main>
+  <div class="log-button-container">
+  <a href="{{ url_for('main.deletion_logs') }}" class="log-button">📄 View Deletion Logs</a>
+  </div>
+  <form method="POST" id="filterForm">
+    <label for="report_ids">Enter Contact IDs (comma-separated):</label>
+    <textarea id="report_ids" name="report_ids" placeholder="e.g. abc123, def456">{{ report_ids | join(', ') }}</textarea>
+
+    <label for="form_name">Filter by Form Name (optional):</label>
+    <div id="form-checkboxes">
+      {% for key, value in form_name_mapping.items() %}
+        <label>
+          <input type="checkbox" name="form_name" value="{{ key }}" {% if key in selected_form_names %}checked{% endif %}>
+          {{ value }}
+        </label>
+      {% endfor %}
+    </div>
+
+    <div style="text-align: center;">
+      <button type="submit" id="filter-button">🔍 Filter Reports</button>
+      <p id="duplicate-warning" style="color: red; display: none; font-weight: bold; margin-top: 10px;">
+        ❗ Duplicate Contact IDs detected. IDs should not be repeated.
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <button type="button" id="deselect-forms">🚫 Deselect All Forms</button>
+      
+    </div>
+  </form>
+
+  {% for msg in result_messages %}
+    <div class="message {{ 'success' if msg.type == 'success' else 'error' }}">{{ msg.message }}</div>
+  {% endfor %}
+
+  {% if records %}
+    <p style="text-align: right; font-weight: bold; margin: 10px 30px;">
+      Total Filtered Reports: {{ records | length }}
+    </p>
+
+    <div class="table-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3>Filtered Reports</h3>
+        <div>
+          <button class="btn-danger" id="deselect-all">🚫 Deselect All</button>
+          <button class="btn-danger" id="delete-selected">🗑️ Delete Selected</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Select All <input type="checkbox" id="selectAll"></th>
+            <th>Contact ID</th>
+            <th>Document ID</th>
+            <th>Patient Name</th>
+            <th>Form</th>
+            <th>Reported Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in records %}
+            {% set doc = item.doc %}
+            <tr>
+              <td><input type="checkbox" class="row-checkbox" data-id="{{ doc._id }}"></td>
+              <td>{{ doc.fields.patient_id }}</td>  
+              <td>{{ doc._id }}</td>
+              <td>{{ doc.fields.patient_name }}</td>
+              <td>{{ form_name_mapping.get(doc.form, doc.form) }}</td>
+              <!-- <td>{{ doc.reported_date }}</td> -->
+              <td class="reported-date" data-epoch="{{ doc.reported_date }}"></td>
+
+              <td>
+                <button class="btn-danger delete-btn" data-id="{{ doc._id }}" data-rev="{{ doc._rev }}">Delete</button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</main>
+
+<!--  Modal for Deleting a Single Report -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <p>Are you sure you want to delete this report?</p>
+      <div class="modal-buttons">
+        <button class="confirm" id="confirmDelete">Yes, Delete</button>
+        <button class="cancel" id="cancelDelete">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+ <!--  Modal for Deleting Selected Reports -->
+  <div id="bulkDeleteModal" class="modal">
+    <div class="modal-content">
+      <p>Are you sure you want to delete the selected reports?</p>
+      <div class="modal-buttons">
+        <button class="confirm" id="confirmBulkDelete">Yes, Delete</button>
+        <button class="cancel" id="cancelBulkDelete">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- Loading and Result Modal -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    Deleting reports, please wait...
+  </div>
+
+  <!-- Filter Loading Overlay -->
+  <div id="filterLoadingOverlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <div><strong>🔍 Screening Reports...</strong></div>
+      <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">
+        Please wait while fetching and filtering the reports
+      </div>
+    </div>
+  </div>
+
+
+<script>
+  let docToDelete = null;
+  let selectedReports = [];
+  //duplication check for the contact ids
+  document.addEventListener('DOMContentLoaded', () => {
+    const reportInput = document.getElementById('report_ids');
+    const filterBtn = document.getElementById('filter-button');
+    const warning = document.getElementById('duplicate-warning');
+    const filterForm = document.getElementById('filterForm');
+    const filterLoadingOverlay = document.getElementById('filterLoadingOverlay');
+
+    function checkForDuplicates() {
+      const ids = reportInput.value
+        .split(',')
+        .map(id => id.trim().toLowerCase())  // normalize input
+        .filter(id => id !== '');
+
+      const seen = new Set();
+      let hasDuplicate = false;
+
+      for (const id of ids) {
+        if (seen.has(id)) {
+          hasDuplicate = true;
+          break;
+        }
+        seen.add(id);
+      }
+
+      filterBtn.disabled = hasDuplicate;
+      warning.style.display = hasDuplicate ? 'block' : 'none';
+    }
+
+    reportInput.addEventListener('input', checkForDuplicates);
+
+    // Show loading overlay when form is submitted
+    filterForm.addEventListener('submit', function(e) {
+      const reportIds = reportInput.value.trim();
+      
+      // Only show loading if there are report IDs to process
+      if (reportIds) {
+        // Disable the button
+        filterBtn.disabled = true;
+        
+        // Show loading overlay
+        filterLoadingOverlay.style.display = 'flex';
+      }
+      // Let the form submit normally
+    });
+  }); 
+  // Select all toggle
+  document.getElementById('selectAll')?.addEventListener('change', function () {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+  });
+
+  // Deselect all
+  document.getElementById('deselect-all')?.addEventListener('click', () => {
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAll').checked = false;
+  });
+
+  // Deselect all forms
+  document.getElementById('deselect-forms')?.addEventListener('click', () => {
+    document.querySelectorAll('#form-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+  });
+
+  //  Bulk delete (with modal)
+  document.getElementById('delete-selected')?.addEventListener('click', () => {
+    selectedReports = Array.from(document.querySelectorAll('.row-checkbox:checked'))
+      .map(cb => cb.getAttribute('data-id'));
+
+    if (selectedReports.length === 0) {
+      alert("Please select at least one report to delete.");
+      return;
+    }
+
+    document.getElementById('bulkDeleteModal').style.display = 'block';
+  });
+
+  document.getElementById('cancelBulkDelete')?.addEventListener('click', () => {
+    document.getElementById('bulkDeleteModal').style.display = 'none';
+    selectedReports = [];
+  });
+
+  
+  document.getElementById('confirmBulkDelete')?.addEventListener('click', () => {
+    const loading = document.getElementById('loadingOverlay');
+    loading.style.display = 'flex'; // Show the loading overlay
+
+    fetch("/delete-all-reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportIds: selectedReports })
+    })
+      .then(res => res.json())
+      .then(data => {
+        loading.style.display = 'none'; // Hide loading once done
+
+        // Show success/failure messages in alert
+        const messages = data.results.map(r => r.message).join("\n");
+        if (data.success) {
+          if (confirm(messages + "\n\nClick OK to reload the page.")) {
+            // location.reload();
+            window.location.href = window.location.pathname;
+          }
+        } else {
+          alert("Some errors occurred:\n" + messages);
+          document.getElementById('bulkDeleteModal').style.display = 'none';
+        }
+      })
+      .catch(err => {
+        loading.style.display = 'none';
+        alert("An error occurred while deleting reports.");
+        console.error(err);
+      });
+  });
+
+
+  //  Individual delete (with modal)
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      docToDelete = {
+        id: this.dataset.id,
+        rev: this.dataset.rev
+      };
+      document.getElementById('deleteModal').style.display = 'block';
+    });
+  });
+
+  document.getElementById('cancelDelete')?.addEventListener('click', () => {
+    document.getElementById('deleteModal').style.display = 'none';
+    docToDelete = null;
+  });
+
+  document.getElementById('confirmDelete')?.addEventListener('click', () => {
+    if (!docToDelete) return;
+
+    const loading = document.getElementById('loadingOverlay');
+    loading.style.display = 'flex'; // Show loading overlay
+
+    fetch('/delete-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ docId: docToDelete.id, rev: docToDelete.rev })
+    })
+      .then(res => res.json())
+      .then(data => {
+        loading.style.display = 'none'; // Hide loading overlay
+
+        if (data.success) {
+          if (confirm(data.message + "\n\nClick OK to reload the page.")) {
+            // location.reload();
+            window.location.href = window.location.pathname;
+          }
+        } else {
+          alert(data.message);
+          document.getElementById('deleteModal').style.display = 'none';
+        }
+      })
+      .catch(err => {
+        loading.style.display = 'none';
+        alert("An error occurred while deleting the report.");
+        console.error(err);
+      });
+  });
+
+  // Close modals with ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('bulkDeleteModal').style.display = 'none';
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+  });
+   window.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('page-loaded');
+  });
+  
+  // Format reported date
+  document.querySelectorAll('.reported-date').forEach(td => {
+  const epoch = parseInt(td.dataset.epoch, 10);
+  if (!isNaN(epoch)) {
+    const date = new Date(epoch);
+    td.textContent = date.toLocaleString(); // change garnu parcha if needed 
+  } else {
+    td.textContent = "Invalid Date";
+  } 
+});
+
+</script>
+
+</body>
+</html>

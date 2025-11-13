@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;  /* <-- changed from center */
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .cursor-dot {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1000;
+      mix-blend-mode: difference;
+      animation: glow 1.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 5px #fff, 0 0 10px #00c1ed, 0 0 15px #ec1e79;
+      }
+      to {
+        box-shadow: 0 0 10px #ec1e79, 0 0 20px #00c1ed, 0 0 30px #fff;
+      }
+    }
+
+    .container {
+      text-align: center;
+      margin-top: 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin-bottom: 40px;
+      font-size: 36px;
+      color: #ec1e79;
+      text-shadow: 0 0 8px #ec1e79;
+      animation: pulseText 2s infinite;
+    }
+
+    @keyframes pulseText {
+      0%, 100% {
+        text-shadow: 0 0 8px #ec1e79;
+      }
+      50% {
+        text-shadow: 0 0 16px #ec1e79, 0 0 24px #00c1ed;
+      }
+    }
+
+    .button-box {
+      display: inline-block;
+      padding: 30px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 193, 237, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: float 5s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .button {
+      margin: 15px;
+      padding: 15px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      background-color: #00c1ed;
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px #00c1ed;
+    }
+
+    .button:hover {
+      background-color: #ec1e79;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #ec1e79, 0 0 30px #fff;
+    }
+
+    .fade-out {
+      opacity: 0;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      padding: 10px 20px;
+      background-color: #ec1e79;
+      color: white; 
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ec1e79;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .logout-btn:hover {
+      background-color: #00c1ed;
+      box-shadow: 0 0 15px #00c1ed, 0 0 25px #fff;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Glowing Cursor Effect -->
+<div class="cursor-dot" id="cursor"></div>
+<a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+
+<div class="container">
+  <h1>Archiving Tool</h1>
+  <div class="button-box">
+    <button class="button" onclick="navigate('/tombstone')">Tombstone Archiving Tool</button>
+    <button class="button" onclick="navigate('/button2')">Contact Archiving Tool</button>
+    <button class="button" onclick="navigate('/')">📋 Data Archiving Tool</button>
+    <button class="button" onclick="navigate('/csv-mapper')">📂 CSV Mapper </button>
+  </div>
+</div>
+
+<script>
+  function navigate(url) {
+    document.body.classList.add('fade-out');
+    setTimeout(() => {
+      window.location.href = url;
+    }, 500);
+  }
+
+  // Glowing cursor dot
+  const cursor = document.getElementById('cursor');
+
+  document.addEventListener('mousemove', (e) => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+  });
+</script>
+
+</body>
+</html>

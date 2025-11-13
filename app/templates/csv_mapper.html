@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EPDS SCREENING MAPPED DATA</title>
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    .drop-zone {
+      border: 2px dashed #00c1ed;
+      padding: 50px;
+      border-radius: 15px;
+      cursor: pointer;
+      background-color: rgba(255,255,255,0.05);
+      position: relative;
+    }
+    .drop-zone:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    .hidden-input {
+      display: none;
+    }
+    .button {
+      margin-top: 20px;
+      padding: 15px 30px;
+      background: #00c1ed;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .file-name {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #ec1e79;
+      font-weight: bold;
+    }
+    .placeholder {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>📂 EPDS SCREENING MAPPED DATA</h1>
+  <form id="upload-form" action="/process-csv" method="post" enctype="multipart/form-data">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click();">
+      <p id="placeholder-text" class="placeholder">Drag & Drop CSV here or click to select</p>
+      <input id="fileInput" class="hidden-input" type="file" name="file" accept=".csv" required>
+      <p id="fileName" class="file-name" style="display:none;"></p>
+    </div>
+    <button class="button" type="submit">Upload & Process</button>
+  </form>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const placeholderText = document.getElementById('placeholder-text');
+    const fileNameDisplay = document.getElementById('fileName');
+
+    // When user selects file by clicking
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        placeholderText.style.display = "none"; // hide placeholder
+        fileNameDisplay.textContent = "📄 " + fileInput.files[0].name;
+        fileNameDisplay.style.display = "block";
+      }
+    });
+
+    // Dragging file over drop zone
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = 'rgba(255,255,255,0.2)';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.backgroundColor = 'rgba(255,255,255,0.05)';
+    });
+
+    // Drop file
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileInput.files = e.dataTransfer.files; // attach file
+      dropZone.style.backgroundColor = 'rgba(255,255,255,0.05)';
+
+      if (fileInput.files.length > 0) {
+        placeholderText.style.display = "none"; // hide placeholder
+        fileNameDisplay.textContent = "📄 " + fileInput.files[0].name;
+        fileNameDisplay.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

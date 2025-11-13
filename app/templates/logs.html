@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deletion Logs</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 30px;
+      background: #fefefe;
+      color: #eaeaea;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+    }
+
+    body.page-loaded {
+      opacity: 1;
+    }
+
+    h2 {
+      color: #da2c77;
+      font-size: 26px;
+      border-bottom: 2px solid #1ca6c4;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #2b2b3d;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #3a3a52;
+      text-align: left;
+      color: #e0e0e0;
+    }
+
+    th {
+      background-color: #2c3e50;
+      color: #d0f0ff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #262636;
+    }
+
+    .btn-back {
+      display: inline-block;
+      margin-bottom: 20px;
+      background-color: #1ca6c4;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      text-decoration: none;
+      box-shadow: 0 2px 5px rgba(28, 166, 196, 0.3);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background-color: #178aa5;
+      box-shadow: 0 4px 12px rgba(28, 166, 196, 0.4);
+    }
+
+    .filter-form {
+      margin-bottom: 20px;
+    }
+
+    .filter-form label {
+      color: #444;
+      font-weight: 500;
+      margin-right: 10px;
+    }
+
+    .filter-form select {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #bbb;
+    }
+
+    .summary {
+      margin-bottom: 15px;
+      color: #444;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="btn-back">← Go Back</a>
+
+  <h2>Deletion Logs</h2>
+
+  <form method="get" class="filter-form">
+    <label for="result_filter">Filter by Result:</label>
+    <select name="result_filter" id="result_filter" onchange="this.form.submit()">
+      <option value="">All</option>
+      <option value="Successfully Deleted" {% if selected_filter == 'Successfully Deleted' %}selected{% endif %}>Successfully Deleted</option>
+      <option value="Failed" {% if selected_filter == 'Failed' %}selected{% endif %}>Failed</option>
+    </select>
+  </form>
+
+  {% if logs %}
+    <p class="summary"><strong>Total Reports: {{ total_count }}</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Contact ID</th>
+          <th>Document ID</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>{{ log['Contact ID'] }}</td>
+          <td>{{ log['Document ID'] }}</td>
+          <td>{{ log['Result'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No logs available.</p>
+  {% endif %}
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('page-loaded');
+    });
+  </script>
+</body>
+</html>
