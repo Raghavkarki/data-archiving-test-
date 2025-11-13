@@ -269,7 +269,116 @@
       transform: translateY(-4px);
     }
 
-    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        padding: 0 15px 60px 15px;
+      }
+
+      .sticky-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+      }
+
+      .sticky-header h3 {
+        font-size: 16px;
+      }
+
+      .sticky-header > div {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 100%;
+      }
+
+      .sticky-header select,
+      .sticky-header button,
+      .sticky-header a {
+        flex: 1;
+        min-width: 120px;
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+
+      h1 {
+        margin-top: 120px;
+        font-size: 24px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 4px 6px;
+      }
+
+      #summary {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 20px;
+        max-height: 200px;
+      }
+
+      #backToTop {
+        bottom: 20px;
+        right: 15px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+
+      .modal-box {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      #fetchAllModal .modal-content {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0 10px 50px 10px;
+      }
+
+      .sticky-header {
+        padding: 8px 10px;
+      }
+
+      .sticky-header h3 {
+        font-size: 14px;
+      }
+
+      .sticky-header select,
+      .sticky-header button,
+      .sticky-header a {
+        width: 100%;
+        margin: 3px 0;
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+
+      h1 {
+        margin-top: 150px;
+        font-size: 20px;
+      }
+
+      table {
+        font-size: 11px;
+      }
+
+      th, td {
+        padding: 3px 5px;
+      }
+
+      #bulk-actions button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -369,7 +478,7 @@
         let html = "";
         if (data.exists) {
           const total = Object.values(data.summary).reduce((a, b) => a + b, 0);
-          html += `<div><strong>Total Reports: ${total}</strong><br><button onclick="fetchAll()">Re-fetch</button></div><ul>`;
+          html += `<div><strong>Total Reports: $  {total}</strong><br><button onclick="fetchAll()">Re-fetch</button></div><ul>`;
           for (const [form, count] of Object.entries(data.summary)) {
             html += `<li>${form}: ${count}</li>`;
           }
@@ -412,8 +521,10 @@
     fetchSource = new EventSource(`/stream-tombstones?form=${encodeURIComponent(form)}`);
     
     fetchSource.onmessage = function (event) {
-      if (event.data.startsWith("TABLE_DATA::")) {
-        const reports = JSON.parse(event.data.replace("TABLE_DATA::", ""));
+      const message = event.data.trim();
+      
+      if (message.startsWith("TABLE_DATA::")) {
+        const reports = JSON.parse(message.replace("TABLE_DATA::", ""));
         let html = `<table><thead><tr><th><input type="checkbox" onclick="toggleSelectAllRows(this)" id="masterCheckbox"></th><th>#</th><th>Report ID</th><th>Form</th></tr></thead><tbody>`;
         reports.forEach((r, i) => {
           html += `<tr><td><input type="checkbox" class="rowCheckbox" data-id="${r._id}"></td><td>${i+1}</td><td>${r._id}</td><td>${r.form}</td></tr>`;
@@ -422,38 +533,52 @@
         reportTableDiv.innerHTML = html;
         bulkActions.style.display = "block";
         
-        // Hide loading overlay and re-enable button
-        fetchLoadingOverlay.style.display = "none";
-        if (fetchButton) fetchButton.disabled = false;
-        fetchSource.close();
+        // Wait for the "Done" message before closing
+        // The overlay will be closed when we receive the "✔ Done!" message
         return;
       }
 
       // Update progress messages in loading overlay
-      const message = event.data.trim();
       fetchProgressMessages.textContent += message + "\n";
       fetchProgressMessages.scrollTop = fetchProgressMessages.scrollHeight;
       
       // Also update the progressSingle for backward compatibility
       progressSingle.textContent += message + "\n";
       
+      // Close overlay and re-enable button when we see the completion message
       if (message.startsWith("✔") || message.startsWith("❌")) {
-        // Hide loading overlay and re-enable button when done
+        // Close the EventSource first
+        if (fetchSource) {
+          fetchSource.close();
+          fetchSource = null;
+        }
+        
+        // Hide loading overlay and re-enable button
         setTimeout(() => {
           fetchLoadingOverlay.style.display = "none";
-          if (fetchButton) fetchButton.disabled = false;
-        }, 1000);
-        fetchSource.close();
+          if (fetchButton) {
+            fetchButton.disabled = false;
+          }
+        }, 500);
       }
     };
 
     fetchSource.onerror = function() {
       fetchProgressMessages.textContent += "❌ Connection error. Please try again.\n";
+      
+      // Close the EventSource
+      if (fetchSource) {
+        fetchSource.close();
+        fetchSource = null;
+      }
+      
+      // Hide loading overlay and re-enable button
       setTimeout(() => {
         fetchLoadingOverlay.style.display = "none";
-        if (fetchButton) fetchButton.disabled = false;
+        if (fetchButton) {
+          fetchButton.disabled = false;
+        }
       }, 2000);
-      fetchSource.close();
     };
   }
 
