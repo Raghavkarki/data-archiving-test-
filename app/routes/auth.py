@@ -20,7 +20,7 @@ def login():
             current_app.logger.info(f"Successful login for user: {username} from IP :{request.remote_addr}")
             return redirect(url_for("main.admin"))
         else:
-            current_app.logger.info(f"Failed to log in for uset {username}  form IP :{reuest.remote_addr}")
+            current_app.logger.info(f"Failed to log in for uset {username}  form IP :{request.remote_addr}")
             return render_template("login.html", error="Invalid username or password.")
     return render_template("login.html")
 
