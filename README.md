@@ -82,6 +82,9 @@ The application uses a `.env` file for secure credential storage.
    # Admin Authentication
    ADMIN_USERNAME=admin
    ADMIN_PASSWORD=your-admin-password
+   
+   # Logging (optional)
+   LOG_LEVEL=INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
    ```
 
 **Important:** The `.env` file is already in `.gitignore` and will not be committed to version control. Never commit your `.env` file with real credentials.
@@ -123,6 +126,24 @@ The application uses a `.env` file for secure credential storage.
 - Filter by success/failure status
 - Track contact IDs and document IDs
 
+## Logging
+
+The application includes comprehensive logging functionality:
+
+- **Log Location**: Logs are stored in the `logs/` directory
+- **Log File**: `logs/app.log` (automatically rotated when it reaches 10MB)
+- **Log Levels**: Configure via `LOG_LEVEL` in `.env` file (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- **What's Logged**:
+  - User authentication (login/logout attempts)
+  - Report filtering and fetching operations
+  - Document deletion operations
+  - CouchDB API calls
+  - CSV processing
+  - Tombstone operations
+  - Errors and exceptions
+
+Logs are automatically rotated to prevent large files, keeping the last 5 backup files.
+
 ## Notes
 
 - The application does not use a local database; all data is stored in CSV files
@@ -142,4 +163,3 @@ The application uses a `.env` file for secure credential storage.
 
 This project is for internal use only.
 
-# data-archiving-test-
